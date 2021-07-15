@@ -1,6 +1,8 @@
 ﻿using System.Collections.Generic;
-using UnityEditor;
 using UnityEngine;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
 namespace com.arlinus.FiguresMaker2D
 {
@@ -29,7 +31,7 @@ namespace com.arlinus.FiguresMaker2D
             DrawPolygon(_vertexNumber, _radius, Vector3.forward, _lineSize.x, _lineSize.y, _figureType);
         }
 
-
+#if UNITY_EDITOR
         [ContextMenu("Save figure")]
         public void SavePrefabAsset()
         {
@@ -38,6 +40,7 @@ namespace com.arlinus.FiguresMaker2D
 
             PrefabUtility.SaveAsPrefabAsset(_figure, localPath);
         }
+#endif
 
         private void DrawPolygon(int vertexNumber, float radius, Vector3 centerPos, float startWidth, float endWidth, FigureType figureType = FigureType.Polygon)
         {

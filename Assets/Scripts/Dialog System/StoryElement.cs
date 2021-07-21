@@ -5,7 +5,9 @@ public class StoryElement
     private readonly Dialogue _dialogue;
     private Queue<string> _sentences = new Queue<string>();
 
-    public string DialogTitle => _dialogue.Title;
+    private int _currentTitleId;
+
+    public string DialogTitle => _dialogue.Titles[_currentTitleId].Name;
 
     public StoryElement(Dialogue dialogue)
     {
@@ -16,9 +18,9 @@ public class StoryElement
     {
         _sentences.Clear();
 
-        foreach (string sentence in _dialogue.Sentences)
+        foreach (Dialogue.Title title in _dialogue.Titles)
         {
-            _sentences.Enqueue(sentence);
+            _sentences.Enqueue(title.Sentence);
         }
     }
 

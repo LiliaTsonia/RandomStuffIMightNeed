@@ -1,6 +1,7 @@
 {
   "project_info": {
     "project_number": "426189825233",
+    "firebase_url": "https://fir-test-project-8772b-default-rtdb.europe-west1.firebasedatabase.app",
     "project_id": "fir-test-project-8772b",
     "storage_bucket": "fir-test-project-8772b.appspot.com"
   },
@@ -13,6 +14,14 @@
         }
       },
       "oauth_client": [
+        {
+          "client_id": "426189825233-r0oons2v2ruqvbb8b7fq6l7m72i909q4.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.arlinus.RandomStuffIMightNeed",
+            "certificate_hash": "c36eed26a8a4e9b5896627b1994d95bbc2c59858"
+          }
+        },
         {
           "client_id": "426189825233-9vcmenbj8fnrmmic1rhck6iatss7hlhf.apps.googleusercontent.com",
           "client_type": 3

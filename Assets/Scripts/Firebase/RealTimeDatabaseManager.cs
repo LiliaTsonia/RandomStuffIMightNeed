@@ -1,39 +1,132 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 using Firebase.Database;
+using System.Threading.Tasks;
+using System.Collections;
+using SimpleJSON;
 
 public class RealTimeDatabaseManager : MonoBehaviour
 {
     //private static readonly string DATABASE_URL = "https://fir-test-project-8772b-default-rtdb.europe-west1.firebasedatabase.app/";
     private DatabaseReference _database;
 
-    private void Start()
+    private IEnumerator Start() //TODO remove to separate method
     {
-        _database = FirebaseDatabase.DefaultInstance.RootReference;
-        TestReadData();
-    }
+        _database = FirebaseDatabase.DefaultInstance.GetReference("dialogues");
 
-    private void TestSaveData()
-    {
-        Dialogue.Title[] titles =  { 
-            new Dialogue.Title { TitleId = 0, Name = "Sam", Sentence = "수고했어요!" },
-            new Dialogue.Title { TitleId = 1, Name = "Phill", Sentence = "네, 고마워요!" }
-        };
+        //yield return StartCoroutine(TestDataSave());
 
-        Dialogue dialogue = new Dialogue { Id = 2, Titles = titles };
+        //---------------- Receive data -------------------------------
+        Task<Dialogue> dataTask = GetDialogueDataById(2);
+        yield return new WaitUntil(() => dataTask.IsCompleted);
 
-        string json = JsonUtility.ToJson(dialogue);
-    }
-
-    private void TestReadData()
-    {
-        _database.Child("dialogues").GetValueAsync().ContinueWith(task =>
+        foreach (var title in dataTask.Result.Titles)
         {
-            if (task.IsCompleted)
-            {
-                Debug.Log(task.Result);
-            }
-        });
+            Debug.Log(title.Name + " : " + title.Sentence);
+        }
     }
+
+    private async Task<long> GetDialoguesCount()
+    {
+        var dataSnaphot = await _database.GetValueAsync();
+        return dataSnaphot.ChildrenCount;
+    }
+
+    private void SaveNewDialogue(Dialogue dialogue, long saveIndex)
+    {
+        string json = JsonUtility.ToJson(dialogue);
+        _database.Child(saveIndex.ToString()).SetRawJsonValueAsync(json);
+    }
+
+    private async Task<Dialogue> GetDialogueDataById(long dialogueId)
+    {
+        var dataSnapshot = await _database.GetValueAsync();
+
+        if (!dataSnapshot.Exists)
+        {
+            return null;
+        }
+
+        string jsonRaw = dataSnapshot.GetRawJsonValue();
+
+        JSONNode data = JSON.Parse(jsonRaw);
+        foreach (JSONNode node in data)
+        {
+            if (node["Id"].Value.Equals(dialogueId.ToString()))
+            {
+                List<Dialogue.Title> dialogueTitles = new List<Dialogue.Title>();
+
+                foreach (JSONNode title in node["Titles"].Values)
+                {
+                    dialogueTitles.Add(new Dialogue.Title
+                    {
+                        TitleId = long.Parse(title["TitleId"].Value),
+                        Name = title["Name"].Value,
+                        Sentence = title["Sentence"].Value
+                    });
+                }
+                return new Dialogue { Id = dialogueId, Titles = dialogueTitles };
+            }
+        }
+
+        return null;
+    }
+
+    private IEnumerator TestDataSave()
+    {
+        var dialoguesCountTask = GetDialoguesCount();
+        yield return new WaitUntil(() => dialoguesCountTask.IsCompleted);
+
+        if (dialoguesCountTask.Result != 0)
+        {
+            List<Dialogue.Title> titles = new List<Dialogue.Title>();
+            titles.Add(new Dialogue.Title { TitleId = 0, Name = "Sam", Sentence = "수고했어요!" });
+            titles.Add(new Dialogue.Title { TitleId = 1, Name = "Phill", Sentence = "네, 고마워요!" });
+
+            Dialogue dialogue = new Dialogue { Id = dialoguesCountTask.Result, Titles = titles };
+
+            SaveNewDialogue(dialogue, dialoguesCountTask.Result);
+        }
+    }
+
+    //private void TestReadDataFromSnapshot(int dialogueId)
+    //{
+    //    _database.GetValueAsync().ContinueWith(task =>
+    //    {
+    //        if (task.IsCompleted)
+    //        {
+    //            var json = task.Result.GetRawJsonValue();
+    //            Debug.Log(json);
+    //            foreach (DataSnapshot data in task.Result.Children)
+    //            {
+    //                DataSnapshot dialogue = data.Child("");
+    //                long id = (long)dialogue.Child("Id").Value;
+
+    //                if (id.Equals(dialogueId))
+    //                {
+    //                    List<Dialogue.Title> dialogueTitles = new List<Dialogue.Title>();
+    //                    DataSnapshot dialogueData = dialogue.Child("Titles");
+
+    //                    foreach (DataSnapshot titleData in dialogueData.Children)
+    //                    {
+    //                        IDictionary titles = (IDictionary)titleData.Value;
+
+    //                        dialogueTitles.Add(new Dialogue.Title
+    //                        {
+    //                            TitleId = (long)titles["TitleId"],
+    //                            Name = titles["Name"].ToString(),
+    //                            Sentence = titles["Sentence"].ToString()
+    //                        });
+    //                    }
+
+    //                    break;
+    //                }
+    //            }
+    //        }
+    //        else
+    //        {
+    //            Debug.LogError(task.Exception.Message);
+    //        }
+    //    });
+    //}
 }

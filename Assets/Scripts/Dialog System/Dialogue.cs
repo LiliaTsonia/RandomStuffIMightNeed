@@ -1,13 +1,15 @@
+using System.Collections.Generic;
+
 [System.Serializable]
 public class Dialogue
 {
-    public int Id;
-    public Title[] Titles;
+    public long Id;
+    public List<Title> Titles;
 
     [System.Serializable]
     public class Title
     {
-        public int TitleId;
+        public long TitleId;
         public string Name;
         public string Sentence;
     }

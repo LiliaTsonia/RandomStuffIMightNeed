@@ -8,22 +8,22 @@ using SimpleJSON;
 public class RealTimeDatabaseManager : MonoBehaviour
 {
     //private static readonly string DATABASE_URL = "https://fir-test-project-8772b-default-rtdb.europe-west1.firebasedatabase.app/";
-    private DatabaseReference _database;
+    private static DatabaseReference _database;
 
-    private IEnumerator Start() //TODO remove to separate method
+    private void Awake() //TODO remove to separate method
     {
         _database = FirebaseDatabase.DefaultInstance.GetReference("dialogues");
 
         //yield return StartCoroutine(TestDataSave());
 
         //---------------- Receive data -------------------------------
-        Task<Dialogue> dataTask = GetDialogueDataById(2);
-        yield return new WaitUntil(() => dataTask.IsCompleted);
+        //Task<Dialogue> dataTask = GetDialogueDataById(2);
+        //yield return new WaitUntil(() => dataTask.IsCompleted);
 
-        foreach (var title in dataTask.Result.Titles)
-        {
-            Debug.Log(title.Name + " : " + title.Sentence);
-        }
+        //foreach (var title in dataTask.Result.Titles)
+        //{
+        //    Debug.Log(title.Name + " : " + title.Sentence);
+        //}
     }
 
     private async Task<long> GetDialoguesCount()
@@ -38,7 +38,7 @@ public class RealTimeDatabaseManager : MonoBehaviour
         _database.Child(saveIndex.ToString()).SetRawJsonValueAsync(json);
     }
 
-    private async Task<Dialogue> GetDialogueDataById(long dialogueId)
+    public static async Task<Dialogue> GetDialogueDataById(long dialogueId)
     {
         var dataSnapshot = await _database.GetValueAsync();
 
@@ -61,9 +61,10 @@ public class RealTimeDatabaseManager : MonoBehaviour
                     dialogueTitles.Add(new Dialogue.Title
                     {
                         TitleId = long.Parse(title["TitleId"].Value),
+                        Side = (DialogueSide)long.Parse(title["Side"].Value),
                         Name = title["Name"].Value,
                         Sentence = title["Sentence"].Value
-                    });
+                    }); ; ;
                 }
                 return new Dialogue { Id = dialogueId, Titles = dialogueTitles };
             }
@@ -80,8 +81,9 @@ public class RealTimeDatabaseManager : MonoBehaviour
         if (dialoguesCountTask.Result != 0)
         {
             List<Dialogue.Title> titles = new List<Dialogue.Title>();
-            titles.Add(new Dialogue.Title { TitleId = 0, Name = "Sam", Sentence = "수고했어요!" });
-            titles.Add(new Dialogue.Title { TitleId = 1, Name = "Phill", Sentence = "네, 고마워요!" });
+            titles.Add(new Dialogue.Title { TitleId = 0, Side = DialogueSide.Left, Name = "Sam", Sentence = "수고했어요!" });
+            titles.Add(new Dialogue.Title { TitleId = 1, Side = DialogueSide.Right, Name = "Phill", Sentence = "네, 고마워요!" });
+            titles.Add(new Dialogue.Title { TitleId = 2, Side = DialogueSide.Right, Name = "Phill", Sentence = "알 수 없는 기분이" });
 
             Dialogue dialogue = new Dialogue { Id = dialoguesCountTask.Result, Titles = titles };
 

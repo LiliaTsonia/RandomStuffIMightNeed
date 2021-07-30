@@ -5,7 +5,6 @@ using UnityEngine.UI;
 using UnityEngine.EventSystems;
 
 /// <summary>
-/// Add logic for skip button;
 /// Expand async prefab loading
 /// </summary>
 
@@ -38,6 +37,7 @@ public class DialogueView : CommonView, IPointerClickHandler
     {
         _presenter = new DialoguePresenter((Dialogue)args[0]);
         _presenter.SetDialogueQueue();
+        _btnSkip.onClick.AddListener(CloseDialogue);
         Hide();
     }
 
@@ -70,7 +70,7 @@ public class DialogueView : CommonView, IPointerClickHandler
         _currentTitle = _presenter.GetNextTitle();
         if (_currentTitle == null)
         {
-            Hide();
+            CloseDialogue();
             return;
         }
 
@@ -116,5 +116,12 @@ public class DialogueView : CommonView, IPointerClickHandler
         }
 
         _currentTitle = null;
+    }
+
+    private void CloseDialogue()
+    {
+        _presenter = null;
+        _btnSkip.onClick.RemoveAllListeners();
+        Hide();
     }
 }
